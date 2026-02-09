@@ -92,6 +92,7 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
                             <th>Instagram</th>
                             <th>Dias de Postagem</th>
                             <th>Último Post</th>
+                            <th>Imagem</th>
                             <th>Status</th>
                             <th>Métricas</th>
                             <th>Ações</th>
@@ -119,6 +120,24 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
                                 </td>
                                 <td>
                                     <div>{formatDate(client.last_post_date)}</div>
+                                </td>
+                                <td>
+                                    {client.last_post_image ? (
+                                        <div className="thumbnail-container">
+                                            <img
+                                                src={client.last_post_image}
+                                                alt="Último post"
+                                                className="post-thumbnail"
+                                                loading="lazy"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = 'https://via.placeholder.com/70x100?text=Sem+Imagem';
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="no-thumbnail">—</div>
+                                    )}
                                 </td>
                                 <td>
                                     <StatusBadge status={client.status} />

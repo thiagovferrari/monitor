@@ -868,4 +868,38 @@ form {
   justify-content: flex-end;
   padding: 1.5rem;
   border-top: 1px solid var(--border-glass);
+}@charset " UTF-8\;
+
+/* ============================================
+ MINIATURA DO POST
+ ============================================ */
+.thumbnail-container {
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ min-height: 50px;
+}
+
+.post-thumbnail {
+ width: 70px;
+ height: auto;
+ border-radius: 8px;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+ transition: var(--transition-fast);
+ object-fit: cover;
+ border: 1px solid rgba(255, 255, 255, 0.1);
+ display: block;
+}
+
+.post-thumbnail:hover {
+ transform: scale(1.1);
+ z-index: 10;
+ box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.no-thumbnail {
+ color: var(--text-secondary);
+ font-size: 0.8rem;
+ text-align: center;
+ opacity: 0.5;
 }
