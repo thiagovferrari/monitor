@@ -17,7 +17,13 @@ const LoginPage = ({ onLoginSuccess }) => {
             onLoginSuccess();
         } catch (err) {
             console.error('Erro de login:', err);
-            setError('E-mail ou senha incorretos. Tente novamente.');
+            if (err.message === 'Email not confirmed') {
+                setError('E-mail ainda não confirmado. Verifique sua caixa de entrada ou desative a confirmação no Supabase.');
+            } else if (err.message === 'Invalid login credentials') {
+                setError('E-mail ou senha incorretos. Tente novamente.');
+            } else {
+                setError(err.message || 'Erro ao fazer login. Tente novamente.');
+            }
         } finally {
             setLoading(false);
         }

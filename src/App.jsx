@@ -165,7 +165,7 @@ function App() {
   };
 
   if (!session) {
-    return <LoginPage onLoginSuccess={() => { }} />;
+    return <LoginPage onLoginSuccess={() => loadClients()} />;
   }
 
   return (
