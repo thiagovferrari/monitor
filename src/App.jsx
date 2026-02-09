@@ -174,23 +174,23 @@ function App() {
       <header className="app-header">
         <div className="header-top">
           <div className="app-logo">
-            <div className="app-logo-icon">📊</div>
-            <h1 className="app-title">Instagram Monitor</h1>
+            <span className="app-logo-icon">📊</span>
+            <div className="logo-text">
+              <h1 className="app-title">Instagram Monitor</h1>
+              <p className="app-subtitle">Sincronização em tempo real</p>
+            </div>
           </div>
           <div className="header-actions">
-            <button className="btn btn-secondary" onClick={handleLogout}>Sair🚪</button>
+            <button className="btn btn-secondary btn-sm" onClick={handleLogout}>Sair 🚪</button>
             <button
-              className="btn btn-primary"
+              className="btn btn-primary btn-sm"
               onClick={handleScrapeAll}
               disabled={scraping}
             >
-              {scraping ? '⏳ Coletando...' : '🚀 Coletar Dados de Todos'}
+              {scraping ? '⏳...' : '🚀 Coletar Dados de Todos'}
             </button>
           </div>
         </div>
-        <p className="app-subtitle">
-          Monitoramento de métricas e postagens dos seus clientes em tempo real
-        </p>
       </header>
 
       {/* Banner Modo Demo */}

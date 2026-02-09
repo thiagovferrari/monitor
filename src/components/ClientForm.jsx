@@ -100,15 +100,12 @@ export default function ClientForm({ onSubmit, loading }) {
             <form onSubmit={handleSubmit}>
                 <div className="form-grid">
                     <div className="form-group">
-                        <label className="form-label" htmlFor="name">
-                            Nome do Cliente *
-                        </label>
                         <input
                             type="text"
                             id="name"
                             name="name"
                             className="form-input"
-                            placeholder="Ex: Empresa ABC"
+                            placeholder="Nome do Cliente"
                             value={formData.name}
                             onChange={handleChange}
                             required
@@ -116,25 +113,19 @@ export default function ClientForm({ onSubmit, loading }) {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label" htmlFor="instagram_url">
-                            URL ou @usuario do Instagram *
-                        </label>
                         <input
                             type="text"
                             id="instagram_url"
                             name="instagram_url"
                             className="form-input"
-                            placeholder="Ex: @empresa ou instagram.com/empresa"
+                            placeholder="@usuario ou URL"
                             value={formData.instagram_url}
                             onChange={handleChange}
                             required
                         />
                     </div>
 
-                    <div className="form-group form-group-full">
-                        <label className="form-label">
-                            Dias de Postagem *
-                        </label>
+                    <div className="form-group">
                         <div className="weekday-selector">
                             {WEEKDAYS.map(day => (
                                 <button
@@ -148,27 +139,15 @@ export default function ClientForm({ onSubmit, loading }) {
                                 </button>
                             ))}
                         </div>
-                        <span className="form-hint">
-                            {formData.posting_days.length} dia(s) selecionado(s)
-                        </span>
                     </div>
 
                     <div className="form-group">
                         <button
                             type="submit"
-                            className="btn btn-primary"
+                            className="btn btn-primary btn-sm"
                             disabled={loading}
                         >
-                            {loading ? (
-                                <>
-                                    <span className="loading-spinner"></span>
-                                    Cadastrando...
-                                </>
-                            ) : (
-                                <>
-                                    📥 Cadastrar Cliente
-                                </>
-                            )}
+                            {loading ? '...' : '📥 Cadastrar'}
                         </button>
                     </div>
                 </div>
