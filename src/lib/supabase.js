@@ -11,7 +11,35 @@ if (isDemoMode) {
   console.warn('Configure o arquivo .env com suas credenciais do Supabase.');
 }
 
-export const supabase = isDemoMode ? null : createClient(supabaseUrl, supabaseAnonKey);
+// Configuração do cliente Supabase
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Objeto de API para Autenticação
+export const authApi = {
+  signIn: async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  signOut: async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+
+  getSession: async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return session;
+  },
+
+  onAuthStateChange: (callback) => {
+    return supabase.auth.onAuthStateChange(callback);
+  }
+};
 
 // URL da Edge Function
 const SCRAPER_FUNCTION_URL = `${supabaseUrl}/functions/v1/instagram-scraper`;
@@ -269,18 +297,33 @@ export function calculateStatus(lastPostDate, postingDays, postsPerWeek) {
   return daysSinceLastPost > maxDays ? 'atrasado' : 'em_dia';
 }
 
-// Formatar data para exibição
+// Função para formatar data de forma amigável
 export function formatDate(dateString) {
-  if (!dateString) return '-';
+  if (!dateString) return 'Nunca';
   const date = new Date(dateString);
-  const now = new Date();
-  const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+  if (isNaN(date.getTime())) return 'Inválido';
 
-  if (diffDays === 0) return 'Hoje';
-  if (diffDays === 1) return 'Ontem';
-  if (diffDays < 7) return `${diffDays} dias atrás`;
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+}
 
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+// Configuração de Realtime - Assinar mudanças na tabela clients
+export function subscribeToClients(onUpdate) {
+  return supabase
+    .channel('clients-realtime')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'clients' },
+      () => {
+        onUpdate();
+      }
+    )
+    .subscribe();
 }
 
 // Exportar flag de modo demo
