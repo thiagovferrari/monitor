@@ -41,7 +41,6 @@ async function scrapeInstagramProfile(username) {
         lastPostDate: null,
         lastPostLikes: 0,
         lastPostComments: 0,
-        lastPostImage: null,
         postUrl: null,
         collectedAt: new Date().toISOString(),
         success: false,
@@ -67,7 +66,6 @@ async function updateClientInDatabase(clientId, data) {
             last_check_date: new Date().toISOString(),
             avg_likes: data.lastPostLikes,
             avg_comments: data.lastPostComments,
-            last_post_image: data.lastPostImage,
             status: calculateStatus(data.lastPostDate)
         })
     });

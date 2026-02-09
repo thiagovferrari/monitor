@@ -57,7 +57,6 @@ let demoClients = [
     avg_likes: 125000,
     avg_comments: 3500,
     status: 'em_dia',
-    last_post_image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=150&q=80',
     created_at: new Date().toISOString()
   }
 ];
