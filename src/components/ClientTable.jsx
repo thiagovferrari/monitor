@@ -5,9 +5,21 @@ const WEEKDAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 export default function ClientTable({ clients, onDelete, onEdit, onRefresh, loading }) {
     const formatDate = (dateString) => {
         if (!dateString) return '—';
+
+        // Criar datas no horário de Brasília (America/Sao_Paulo)
         const date = new Date(dateString);
         const now = new Date();
-        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+        // Normalizar ambas as datas para o início do dia no horário de Brasília
+        const dateInBrasilia = new Date(date.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+        const nowInBrasilia = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+
+        // Zerar horas para comparar apenas dias
+        dateInBrasilia.setHours(0, 0, 0, 0);
+        nowInBrasilia.setHours(0, 0, 0, 0);
+
+        // Calcular diferença em dias
+        const diffDays = Math.floor((nowInBrasilia - dateInBrasilia) / (1000 * 60 * 60 * 24));
 
         if (diffDays === 0) return 'Hoje';
         if (diffDays === 1) return 'Ontem';
@@ -16,7 +28,8 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
         return date.toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric'
+            year: 'numeric',
+            timeZone: 'America/Sao_Paulo'
         });
     };
 
