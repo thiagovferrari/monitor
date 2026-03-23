@@ -2,39 +2,29 @@ import StatusBadge from './StatusBadge';
 
 const WEEKDAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-export default function ClientTable({ clients, onDelete, onEdit, onRefresh, loading }) {
+export default function ClientTable({ clients, onDelete, onEdit, onRefresh, onScrapeOne, loading }) {
     const formatDate = (dateString) => {
         if (!dateString) return '—';
-
-        // Criar datas no horário de Brasília (America/Sao_Paulo)
         const date = new Date(dateString);
         const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 
-        // Normalizar ambas as datas para o início do dia no horário de Brasília
-        const dateInBrasilia = new Date(date.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-        const nowInBrasilia = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-
-        // Zerar horas para comparar apenas dias
-        dateInBrasilia.setHours(0, 0, 0, 0);
-        nowInBrasilia.setHours(0, 0, 0, 0);
-
-        // Calcular diferença em dias
-        const diffDays = Math.floor((nowInBrasilia - dateInBrasilia) / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 0) return 'Hoje';
+        if (diffHours < 1) return 'Agora mesmo';
+        if (diffHours < 24) return `${diffHours}h atrás`;
         if (diffDays === 1) return 'Ontem';
         if (diffDays < 7) return `${diffDays} dias atrás`;
 
         return date.toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric',
-            timeZone: 'America/Sao_Paulo'
+            year: 'numeric'
         });
     };
 
     const formatNumber = (num) => {
-        if (!num) return '0';
+        if (num === null || num === undefined) return '0';
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
         return num.toString();
@@ -64,14 +54,14 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
             <div className="card">
                 <div className="card-header">
                     <h2 className="card-title">
-                        <span className="card-title-icon">📊</span>
-                        Clientes Monitorados
+                        <span className="card-title-icon">📋</span>
+                        Clientes
                     </h2>
                 </div>
                 <div className="empty-state">
                     <div className="empty-state-icon">📱</div>
                     <h3 className="empty-state-title">Nenhum cliente cadastrado</h3>
-                    <p>Adicione seu primeiro cliente usando o formulário acima.</p>
+                    <p>Adicione seu primeiro cliente acima.</p>
                 </div>
             </div>
         );
@@ -81,7 +71,7 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
         <div className="card">
             <div className="card-header">
                 <h2 className="card-title">
-                    <span className="card-title-icon">📊</span>
+                    <span className="card-title-icon">📋</span>
                     Clientes Monitorados ({clients.length})
                 </h2>
                 <button
@@ -92,7 +82,7 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
                     {loading ? (
                         <span className="loading-spinner"></span>
                     ) : (
-                        '🔄 Atualizar'
+                        '↻ Atualizar'
                     )}
                 </button>
             </div>
@@ -103,10 +93,11 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
                         <tr>
                             <th>Cliente</th>
                             <th>Instagram</th>
-                            <th>Dias de Postagem</th>
+                            <th>Dias</th>
                             <th>Último Post</th>
                             <th>Status</th>
-                            <th>Métricas</th>
+                            <th>Curtidas</th>
+                            <th>Comentários</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -123,7 +114,6 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
                                         rel="noopener noreferrer"
                                         className="instagram-link"
                                     >
-                                        <span className="instagram-link-icon">📷</span>
                                         @{client.instagram_username}
                                     </a>
                                 </td>
@@ -131,49 +121,51 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
                                     {renderPostingDays(client.posting_days)}
                                 </td>
                                 <td>
-                                    <div>{formatDate(client.last_post_date)}</div>
+                                    {formatDate(client.last_post_date)}
                                 </td>
                                 <td>
                                     <StatusBadge status={client.status} />
                                 </td>
                                 <td>
-                                    <div className="metrics-row">
-                                        <span className="metric">
-                                            <span className="metric-icon">❤️</span>
-                                            <span className="metric-value">{formatNumber(client.avg_likes)}</span>
-                                        </span>
-                                        <span className="metric">
-                                            <span className="metric-icon">💬</span>
-                                            <span className="metric-value">{formatNumber(client.avg_comments)}</span>
-                                        </span>
-                                    </div>
+                                    <span className="metric">
+                                        <span className="metric-icon">❤️</span>
+                                        <span className="metric-value">{formatNumber(client.avg_likes)}</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span className="metric">
+                                        <span className="metric-icon">💬</span>
+                                        <span className="metric-value">{formatNumber(client.avg_comments)}</span>
+                                    </span>
                                 </td>
                                 <td>
                                     <div className="actions-cell">
+                                        {onScrapeOne && (
+                                            <button
+                                                className="btn btn-secondary btn-icon"
+                                                title="Coletar dados deste perfil"
+                                                onClick={() => onScrapeOne(client)}
+                                            >
+                                                ↻
+                                            </button>
+                                        )}
                                         <button
                                             className="btn btn-secondary btn-icon"
-                                            title="Editar cliente"
+                                            title="Editar"
                                             onClick={() => onEdit(client)}
                                         >
                                             ✏️
                                         </button>
                                         <button
-                                            className="btn btn-secondary btn-icon"
-                                            title="Ver Instagram"
-                                            onClick={() => window.open(client.instagram_url, '_blank')}
-                                        >
-                                            👁️
-                                        </button>
-                                        <button
                                             className="btn btn-danger btn-icon"
-                                            title="Remover cliente"
+                                            title="Remover"
                                             onClick={() => {
                                                 if (confirm(`Remover ${client.name}?`)) {
                                                     onDelete(client.id);
                                                 }
                                             }}
                                         >
-                                            🗑️
+                                            ✕
                                         </button>
                                     </div>
                                 </td>

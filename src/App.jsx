@@ -14,7 +14,6 @@ function App() {
   const [toast, setToast] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
 
-  // Efeito para carregar sessão inicial e ouvir mudanças
   useEffect(() => {
     authApi.getSession().then(session => {
       setSession(session);
@@ -27,13 +26,12 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Efeito para carregar clientes e assinar Realtime
   useEffect(() => {
     if (session) {
       loadClients();
 
       const subscription = subscribeToClients(() => {
-        console.log('Mudança detectada no Realtime! Recarregando...');
+        console.log('Realtime: recarregando clientes...');
         loadClients();
       });
 
@@ -54,7 +52,7 @@ function App() {
       setClients(clientsWithStatus);
     } catch (error) {
       console.error('Erro ao carregar clientes:', error);
-      showToast('Erro ao carregar clientes. Verifique a conexão com Supabase.', 'error');
+      showToast('Erro ao carregar clientes.', 'error');
     } finally {
       setLoading(false);
     }
@@ -64,13 +62,11 @@ function App() {
     setLoading(true);
     try {
       const newClient = await clientsApi.create(clientData);
-      // O Realtime cuidará da atualização da lista se estiver funcionando, 
-      // mas adicionamos localmente para feedback instantâneo
       setClients(prev => [{ ...newClient, status: 'pending' }, ...prev]);
-      showToast(`Cliente "${clientData.name}" cadastrado com sucesso!`, 'success');
+      showToast(`"${clientData.name}" cadastrado com sucesso!`, 'success');
     } catch (error) {
       console.error('Erro ao cadastrar cliente:', error);
-      showToast('Erro ao cadastrar cliente. Tente novamente.', 'error');
+      showToast('Erro ao cadastrar cliente.', 'error');
     } finally {
       setLoading(false);
     }
@@ -80,7 +76,7 @@ function App() {
     try {
       await clientsApi.delete(id);
       setClients(prev => prev.filter(c => c.id !== id));
-      showToast('Cliente removido com sucesso!', 'success');
+      showToast('Cliente removido.', 'success');
     } catch (error) {
       console.error('Erro ao remover cliente:', error);
       showToast('Erro ao remover cliente.', 'error');
@@ -93,7 +89,6 @@ function App() {
 
   const handleSaveClient = async (updates) => {
     if (!editingClient) return;
-
     setLoading(true);
     try {
       const updatedClient = await clientsApi.update(editingClient.id, updates);
@@ -102,7 +97,7 @@ function App() {
           ? { ...updatedClient, status: calculateStatus(updatedClient.last_post_date, updatedClient.posting_days, updatedClient.posts_per_week) }
           : c
       ));
-      showToast(`Cliente "${updates.name}" atualizado com sucesso!`, 'success');
+      showToast(`"${updates.name}" atualizado!`, 'success');
       setEditingClient(null);
     } catch (error) {
       console.error('Erro ao atualizar cliente:', error);
@@ -119,15 +114,18 @@ function App() {
     }
 
     setScraping(true);
-    showToast('🔄 Iniciando coleta de dados de todos os perfis...', 'info');
+    showToast('Iniciando coleta de todos os perfis...', 'info');
 
     try {
       const result = await scraperApi.scrapeAll();
       if (result.success) {
-        showToast(`✅ Coleta concluída! ${result.totalClients || ''} perfis processados.`, 'success');
+        const msg = result.successCount !== undefined
+          ? `Coleta concluída! ${result.successCount}/${result.totalClients} perfis atualizados.`
+          : `Coleta concluída! ${result.totalClients || ''} perfis processados.`;
+        showToast(msg, 'success');
         await loadClients();
       } else {
-        showToast(`⚠️ Aviso: ${result.error || 'Alguns perfis podem ter falhado.'}`, 'info');
+        showToast(`Aviso: ${result.error || 'Alguns perfis falharam.'}`, 'error');
       }
     } catch (error) {
       console.error('Erro no scraping:', error);
@@ -137,16 +135,31 @@ function App() {
     }
   };
 
+  const handleScrapeOne = async (client) => {
+    if (isDemoMode) return;
+
+    showToast(`Coletando dados de @${client.instagram_username}...`, 'info');
+    try {
+      const result = await scraperApi.scrapeProfile(client.instagram_username, client.id);
+      if (result.success) {
+        showToast(`@${client.instagram_username} atualizado!`, 'success');
+        await loadClients();
+      } else {
+        showToast(`Falha ao coletar @${client.instagram_username}.`, 'error');
+      }
+    } catch (error) {
+      showToast('Erro na coleta individual.', 'error');
+    }
+  };
+
   const handleLogout = async () => {
     setLoading(true);
     try {
       await authApi.signOut();
       setSession(null);
       setClients([]);
-      showToast('Desconectado com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
-      showToast('Erro ao fazer logout.', 'error');
     } finally {
       setLoading(false);
     }
@@ -177,23 +190,31 @@ function App() {
             <span className="app-logo-icon">📊</span>
             <div className="logo-text">
               <h1 className="app-title">Instagram Monitor</h1>
-              <p className="app-subtitle">Sincronização em tempo real</p>
+              <p className="app-subtitle">Monitoramento em tempo real</p>
             </div>
           </div>
           <div className="header-actions">
-            <button className="btn btn-secondary btn-sm" onClick={handleLogout}>Sair 🚪</button>
+            {scraping && (
+              <div className="scraping-status">
+                <span className="loading-spinner"></span>
+                Coletando dados...
+              </div>
+            )}
+            <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
+              Sair
+            </button>
             <button
               className="btn btn-primary btn-sm"
               onClick={handleScrapeAll}
               disabled={scraping}
             >
-              {scraping ? '⏳...' : '🚀 Coletar Dados de Todos'}
+              {scraping ? 'Coletando...' : '↻ Atualizar Todos'}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Banner Modo Demo */}
+      {/* Demo Banner */}
       {isDemoMode && (
         <div className="demo-banner">
           <span>⚠️</span>
@@ -204,7 +225,7 @@ function App() {
         </div>
       )}
 
-      {/* Estatísticas */}
+      {/* Stats */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-value">{stats.total}</div>
@@ -212,31 +233,32 @@ function App() {
         </div>
         <div className="stat-card">
           <div className="stat-value">{stats.emDia}</div>
-          <div className="stat-label">Em Dia ✅</div>
+          <div className="stat-label">Em Dia</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{stats.atrasados}</div>
-          <div className="stat-label">Atrasados ⚠️</div>
+          <div className="stat-label">Atrasados</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{stats.pendentes}</div>
-          <div className="stat-label">Pendentes 🔄</div>
+          <div className="stat-label">Pendentes</div>
         </div>
       </div>
 
-      {/* Formulário de Cadastro */}
+      {/* Form */}
       <ClientForm onSubmit={handleAddClient} loading={loading} />
 
-      {/* Tabela de Clientes */}
+      {/* Table */}
       <ClientTable
         clients={clients}
         onDelete={handleDeleteClient}
         onEdit={handleEditClient}
         onRefresh={loadClients}
+        onScrapeOne={handleScrapeOne}
         loading={loading}
       />
 
-      {/* Modal de Edição */}
+      {/* Edit Modal */}
       {editingClient && (
         <EditClientModal
           client={editingClient}
@@ -248,7 +270,7 @@ function App() {
       {/* Toast */}
       {toast && (
         <div className={`toast toast--${toast.type}`}>
-          {toast.type === 'success' ? '✅' : toast.type === 'info' ? 'ℹ️' : '❌'} {toast.message}
+          {toast.type === 'success' ? '✓' : toast.type === 'info' ? '→' : '✕'} {toast.message}
         </div>
       )}
     </div>
