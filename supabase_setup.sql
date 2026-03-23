@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS clients (
     instagram_url VARCHAR(500) NOT NULL,
     instagram_username VARCHAR(100) NOT NULL,
     posts_per_week INTEGER DEFAULT 3,
+    posting_days INTEGER[] DEFAULT '{1,3,5}',
     last_post_date TIMESTAMP WITH TIME ZONE,
     last_check_date TIMESTAMP WITH TIME ZONE,
     avg_likes INTEGER DEFAULT 0,

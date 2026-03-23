@@ -139,11 +139,11 @@ export default function ClientTable({ clients, onDelete, onEdit, onRefresh, load
                                 <td>
                                     <div className="metrics-row">
                                         <span className="metric">
-                                            <span className="metric-icon">👥</span>
+                                            <span className="metric-icon">❤️</span>
                                             <span className="metric-value">{formatNumber(client.avg_likes)}</span>
                                         </span>
                                         <span className="metric">
-                                            <span className="metric-icon">❤️</span>
+                                            <span className="metric-icon">💬</span>
                                             <span className="metric-value">{formatNumber(client.avg_comments)}</span>
                                         </span>
                                     </div>

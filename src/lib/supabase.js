@@ -12,7 +12,9 @@ if (isDemoMode) {
 }
 
 // Configuração do cliente Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = isDemoMode
+  ? null
+  : createClient(supabaseUrl, supabaseAnonKey);
 
 // Objeto de API para Autenticação
 export const authApi = {
@@ -170,6 +172,7 @@ export const scraperApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({
           action: 'scrape_single',
@@ -195,6 +198,7 @@ export const scraperApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({
           action: 'scrape_all'

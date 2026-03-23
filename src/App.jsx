@@ -248,7 +248,7 @@ function App() {
       {/* Toast */}
       {toast && (
         <div className={`toast toast--${toast.type}`}>
-          {toast.type === 'success' ? '✅' : '❌'} {toast.message}
+          {toast.type === 'success' ? '✅' : toast.type === 'info' ? 'ℹ️' : '❌'} {toast.message}
         </div>
       )}
     </div>
